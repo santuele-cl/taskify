@@ -1,5 +1,5 @@
 import InputField from "../../components/InputField";
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useState } from "react";
 import { Task } from "../../model";
 import TaskList from "../../components/TaskList";
@@ -34,7 +34,7 @@ export default function Home() {
       </Typography>
       <InputField task={task} setTask={setTask} handleAddTask={handleAddTask} />
       <Box mt={2}>
-        <TaskList tasks={tasks} />
+        <TaskList tasks={tasks} setTasks={setTasks} />
         {/* {tasks.map((task) => (
           <Paper>
             {`Task: ${task.task}`}

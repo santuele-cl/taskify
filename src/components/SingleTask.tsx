@@ -3,9 +3,62 @@ import { Task } from "../model";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
+import { useEffect, useRef, useState } from "react";
 
-export default function SingleTask({ task }: { task: Task }) {
-  console.log(task);
+const taskFieldStyles = {
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "transparent", // Remove outline color
+    },
+    "&:hover fieldset": {
+      borderColor: "transparent", // Remove outline color on hover
+    },
+  },
+};
+
+export default function SingleTask({
+  task,
+  setTasks,
+}: {
+  task: Task;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+}) {
+  const [editValue, setEditValue] = useState(task.task);
+  const [editMode, setEditMode] = useState(false);
+
+  const handleEditValueChange = (newValue: string) => {
+    setEditValue(newValue);
+  };
+
+  const handleDeleteTask = (id: number) => {
+    setTasks((prevTasks) => {
+      return prevTasks.filter((task) => task.id !== id);
+    });
+  };
+
+  const handleChangeTaskStatus = (id: number) => {
+    setTasks((prevTasks) => {
+      return prevTasks.map((task) => {
+        return task.id === id ? { ...task, isDone: !task.isDone } : task;
+      });
+    });
+  };
+
+  const handleSubmit = (id: number) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, task: editValue } : task
+      )
+    );
+    setEditMode(false);
+  };
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, [editMode]);
+
   return (
     <Box
       display="flex"
@@ -14,19 +67,49 @@ export default function SingleTask({ task }: { task: Task }) {
       p={2}
       borderRadius={2}
     >
-      <TextField defaultValue={task.task} />
-      {/* <Typography component="p" variant="h6">
-        {task.task}
-      </Typography> */}
+      {editMode && !task.isDone ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (editValue) {
+              handleSubmit(task.id);
+            } else {
+              handleDeleteTask(task.id);
+            }
+          }}
+        >
+          <TextField
+            inputRef={inputRef}
+            sx={taskFieldStyles}
+            value={editValue}
+            onChange={(e) => handleEditValueChange(e.target.value)}
+          />
+        </form>
+      ) : (
+        <Typography
+          component="p"
+          variant="h6"
+          sx={{
+            textDecoration: `${task.isDone && "line-through"}`,
+          }}
+        >
+          {task.task}
+        </Typography>
+      )}
+
       <ButtonGroup variant="contained">
-        <Button>
-          <CheckIcon />
+        <Button disabled={task.isDone}>
+          <EditIcon
+            onClick={() => {
+              setEditMode((prevState) => !prevState);
+            }}
+          />
         </Button>
-        <Button>
-          <EditIcon />
-        </Button>
-        <Button>
+        <Button onClick={() => handleDeleteTask(task.id)}>
           <DeleteIcon />
+        </Button>
+        <Button onClick={() => handleChangeTaskStatus(task.id)}>
+          <CheckIcon />
         </Button>
       </ButtonGroup>
     </Box>

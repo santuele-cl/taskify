@@ -56,6 +56,7 @@ export default function InputField({
         onChange={(e) => setTask(e.target?.value)}
       />
       <Button
+        disabled={!task}
         type="submit"
         variant="contained"
         color="secondary"
