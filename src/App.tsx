@@ -3,7 +3,6 @@ import "./App.css";
 import Home from "./pages/home/Home";
 import { useAppContext } from "./AppStateContext";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import { Task } from "./model";
 
 function App() {
   const {

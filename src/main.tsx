@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { CssBaseline, createTheme, ThemeProvider } from "@mui/material";
 import App from "./App.tsx";
