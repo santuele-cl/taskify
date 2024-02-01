@@ -4,6 +4,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import { useEffect, useRef, useState } from "react";
+import { useAppContext } from "../AppStateContext";
 
 const taskFieldStyles = {
   "& .MuiOutlinedInput-root": {
@@ -16,13 +17,8 @@ const taskFieldStyles = {
   },
 };
 
-export default function SingleTask({
-  task,
-  setTasks,
-}: {
-  task: Task;
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
-}) {
+export default function SingleTask({ task }: { task: Task }) {
+  const { dispatch } = useAppContext();
   const [editValue, setEditValue] = useState(task.task);
   const [editMode, setEditMode] = useState(false);
 
@@ -31,25 +27,19 @@ export default function SingleTask({
   };
 
   const handleDeleteTask = (id: number) => {
-    setTasks((prevTasks) => {
-      return prevTasks.filter((task) => task.id !== id);
-    });
+    dispatch({ type: "delete-task", payload: id });
   };
 
   const handleChangeTaskStatus = (id: number) => {
-    setTasks((prevTasks) => {
-      return prevTasks.map((task) => {
-        return task.id === id ? { ...task, isDone: !task.isDone } : task;
-      });
-    });
+    dispatch({ type: "toggle-task", payload: id });
   };
 
   const handleSubmit = (id: number) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === id ? { ...task, task: editValue } : task
-      )
-    );
+    dispatch({
+      type: "update-task",
+      payload: { id: id, updatedTask: editValue },
+    });
+
     setEditMode(false);
   };
 

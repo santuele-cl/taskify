@@ -1,12 +1,7 @@
 import { TextField, Button, Box } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-// import { Task } from "../model";
-
-interface InputFieldProps {
-  task: string;
-  setTask: React.Dispatch<React.SetStateAction<string>>;
-  handleAddTask: (e: React.FormEvent) => void;
-}
+import { useState } from "react";
+import { useAppContext } from "../AppStateContext";
 
 const btnStyles = {
   margin: "5px",
@@ -35,17 +30,22 @@ const taskFieldStyles = {
   },
 };
 
-export default function InputField({
-  task,
-  setTask,
-  handleAddTask,
-}: InputFieldProps) {
+export default function InputField() {
+  const { dispatch } = useAppContext();
+  const [task, setTask] = useState<string>("");
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    dispatch({ type: "add-task", payload: task });
+    setTask("");
+  };
+
   return (
     <Box
       component="form"
       position="relative"
       autoComplete="off"
-      onSubmit={handleAddTask}
+      onSubmit={(e) => handleSubmit(e)}
     >
       <TextField
         fullWidth
