@@ -5,6 +5,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import CheckIcon from "@mui/icons-material/Check";
 import { useEffect, useRef, useState } from "react";
 import { useAppContext } from "../AppStateContext";
+import { Draggable } from "react-beautiful-dnd";
 
 const taskFieldStyles = {
   "& .MuiOutlinedInput-root": {
@@ -17,22 +18,18 @@ const taskFieldStyles = {
   },
 };
 
-export default function SingleTask({ task }: { task: Task }) {
+export default function SingleTask({
+  task,
+  index,
+  from,
+}: {
+  task: Task;
+  index: number;
+  from: string;
+}) {
   const { dispatch } = useAppContext();
   const [editValue, setEditValue] = useState(task.task);
   const [editMode, setEditMode] = useState(false);
-
-  const handleEditValueChange = (newValue: string) => {
-    setEditValue(newValue);
-  };
-
-  const handleDeleteTask = (id: number) => {
-    dispatch({ type: "delete-task", payload: id });
-  };
-
-  const handleChangeTaskStatus = (id: number) => {
-    dispatch({ type: "toggle-task", payload: id });
-  };
 
   const handleSubmit = (id: number) => {
     dispatch({
@@ -50,58 +47,76 @@ export default function SingleTask({ task }: { task: Task }) {
   }, [editMode]);
 
   return (
-    <Box
-      display="flex"
-      justifyContent="space-between"
-      bgcolor="#ff0"
-      p={2}
-      borderRadius={2}
-    >
-      {editMode && !task.isDone ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (editValue) {
-              handleSubmit(task.id);
-            } else {
-              handleDeleteTask(task.id);
-            }
-          }}
+    <Draggable draggableId={task.id.toString()} index={index}>
+      {(provided) => (
+        <Box
+          display="flex"
+          justifyContent="space-between"
+          bgcolor="#ff0"
+          p={2}
+          borderRadius={2}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          ref={provided.innerRef}
         >
-          <TextField
-            inputRef={inputRef}
-            sx={taskFieldStyles}
-            value={editValue}
-            onChange={(e) => handleEditValueChange(e.target.value)}
-          />
-        </form>
-      ) : (
-        <Typography
-          component="p"
-          variant="h6"
-          sx={{
-            textDecoration: `${task.isDone && "line-through"}`,
-          }}
-        >
-          {task.task}
-        </Typography>
+          {editMode && !task.isDone ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (editValue) {
+                  handleSubmit(task.id);
+                }
+              }}
+            >
+              <TextField
+                inputRef={inputRef}
+                sx={taskFieldStyles}
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+              />
+            </form>
+          ) : (
+            <Typography
+              component="p"
+              variant="h6"
+              sx={{
+                textDecoration: `${task.isDone && "line-through"}`,
+              }}
+            >
+              {task.task}
+            </Typography>
+          )}
+          <ButtonGroup variant="contained">
+            <Button disabled={task.isDone}>
+              <EditIcon
+                onClick={() => {
+                  setEditMode((prevState) => !prevState);
+                }}
+              />
+            </Button>
+            <Button
+              onClick={() =>
+                dispatch({
+                  type: "delete-task",
+                  payload: { id: task.id, from },
+                })
+              }
+            >
+              <DeleteIcon />
+            </Button>
+            <Button
+              onClick={() => {
+                dispatch({
+                  type: "toggle-task",
+                  payload: { id: task.id, from },
+                });
+              }}
+            >
+              <CheckIcon />
+            </Button>
+          </ButtonGroup>
+        </Box>
       )}
-
-      <ButtonGroup variant="contained">
-        <Button disabled={task.isDone}>
-          <EditIcon
-            onClick={() => {
-              setEditMode((prevState) => !prevState);
-            }}
-          />
-        </Button>
-        <Button onClick={() => handleDeleteTask(task.id)}>
-          <DeleteIcon />
-        </Button>
-        <Button onClick={() => handleChangeTaskStatus(task.id)}>
-          <CheckIcon />
-        </Button>
-      </ButtonGroup>
-    </Box>
+    </Draggable>
   );
 }
