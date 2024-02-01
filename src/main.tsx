@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { CssBaseline, createTheme, ThemeProvider } from "@mui/material";
 import App from "./App.tsx";
 import "./index.css";
+import AppStateContext from "./AppStateContext.tsx";
 // import { red } from "@mui/material/colors";
 
 const theme = createTheme({
@@ -14,10 +15,12 @@ const theme = createTheme({
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
+  <AppStateContext>
     <ThemeProvider theme={theme}>
       <CssBaseline enableColorScheme />
       <App />
     </ThemeProvider>
-  </React.StrictMode>
+  </AppStateContext>
+  // </React.StrictMode>
 );

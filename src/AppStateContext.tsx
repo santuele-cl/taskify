@@ -1,5 +1,16 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext } from "react";
 import { Task } from "./model";
+import { useImmerReducer } from "use-immer";
+
+interface InitialStateType {
+  [activeTasks: string]: Task[];
+  completedTasks: Task[];
+}
+
+type AppContextType = {
+  state: InitialStateType;
+  dispatch: React.Dispatch<Action>;
+};
 
 export type Action =
   | {
@@ -12,57 +23,116 @@ export type Action =
     }
   | {
       type: "delete-task";
-      payload: number;
+      payload: { id: number; from: string };
     }
   | {
       type: "toggle-task";
-      payload: number;
+      payload: { id: number; from: string };
+    }
+  | {
+      type: "move-task-within";
+      payload: {
+        id: number;
+        destinationIndex: number;
+        sourceIndex: number;
+        sourceDroppable: string;
+      };
+    }
+  | {
+      type: "move-task-across";
+      payload: {
+        id: number;
+        destinationIndex: number;
+        sourceIndex: number;
+        sourceDroppable: string;
+        destinationDroppable: string;
+      };
     };
 
 const initialState = {
-  tasks: [],
-};
-type AppContextType = {
-  state: { tasks: Task[] };
-  dispatch: React.Dispatch<Action>;
+  activeTasks: [],
+  completedTasks: [],
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const Reducer = (state: { tasks: Task[] }, action: Action) => {
+const Reducer = (draft: InitialStateType, action: Action) => {
+  console.log("draft", draft);
   switch (action.type) {
-    case "add-task":
-      return {
-        tasks: [
-          ...state.tasks,
-          { id: Date.now(), task: action.payload, isDone: false },
-        ],
+    case "add-task": {
+      const newTask: Task = {
+        id: Date.now(),
+        task: action.payload,
+        isDone: false,
       };
+      draft.activeTasks.push(newTask);
+      break;
+    }
+    case "update-task": {
+      const task = draft.activeTasks.find(
+        (task) => task.id === action.payload.id
+      );
+      if (task) {
+        task.task = action.payload.updatedTask;
+      }
+      break;
+    }
+    case "delete-task": {
+      const { id, from } = action.payload;
+      console.log(from);
+      draft[from] = draft[from].filter((task) => task.id !== id);
+      break;
+    }
+    case "toggle-task": {
+      const { id, from } = action.payload;
 
-    case "update-task":
-      return {
-        tasks: state.tasks.map((task) => {
-          if (task.id === action.payload.id) {
-            return { ...task, task: action.payload.updatedTask };
-          }
-          return task;
-        }),
-      };
-    case "delete-task":
-      return {
-        tasks: state.tasks.filter((task) => task.id !== action.payload),
-      };
-    case "toggle-task":
-      return {
-        tasks: state.tasks.map((task) => {
-          if (task.id === action.payload) {
-            return { ...task, isDone: !task.isDone };
-          }
-          return task;
-        }),
-      };
+      const foundTask = draft[from].find((task) => task.id === id);
+      draft[from] = draft[from].filter((task) => task.id !== id);
+
+      if (foundTask) {
+        foundTask.isDone = !foundTask?.isDone;
+        if (from === "activeTasks") {
+          draft.completedTasks.push(foundTask);
+        } else {
+          draft.activeTasks.push(foundTask);
+        }
+      }
+
+      break;
+    }
+
+    case "move-task-within": {
+      const { destinationIndex, sourceIndex, id, sourceDroppable } =
+        action.payload;
+
+      const tasks = draft[sourceDroppable];
+
+      const foundTask = tasks.find((task) => task.id === id);
+
+      if (foundTask) {
+        tasks.splice(sourceIndex, 1);
+        tasks.splice(destinationIndex, 0, foundTask);
+      }
+      break;
+    }
+    case "move-task-across": {
+      const {
+        destinationIndex,
+        sourceIndex,
+        sourceDroppable,
+        destinationDroppable,
+      } = action.payload;
+
+      // removed task
+      const sourceTask = draft[sourceDroppable].splice(sourceIndex, 1)[0];
+      sourceTask.isDone = !sourceTask.isDone;
+      // place removed task to destination
+      draft[destinationDroppable].splice(destinationIndex, 0, sourceTask);
+
+      break;
+    }
     default:
-      return state;
+      break;
   }
 };
 
@@ -71,7 +141,7 @@ export default function AppStateContext({
 }: {
   children: React.ReactNode;
 }) {
-  const [state, dispatch] = useReducer(Reducer, initialState);
+  const [state, dispatch] = useImmerReducer(Reducer, initialState);
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}

@@ -1,18 +1,31 @@
-// import { Box } from "@mui/material";
-import { useAppContext } from "../AppStateContext";
-
-import SingleTask from "./SingleTask";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
-
+import { Box } from "@mui/system";
+import ActiveTasksList from "./ActiveTasksList";
+import CompletedTaskList from "./CompletedTasksList";
+import { red } from "@mui/material/colors";
 export default function TaskList() {
-  const { state } = useAppContext();
   return (
-    <Grid container spacing={2}>
-      {state.tasks.map((task) => (
-        <Grid xs={12} md={6} key={task.id}>
-          <SingleTask task={task} />
-        </Grid>
-      ))}
-    </Grid>
+    <Box
+      display="flex"
+      gap={1}
+      alignItems="flex-start"
+      flexDirection={{ xs: "column", md: "row" }}
+    >
+      <Box
+        width={{ xs: "100%", md: "50%" }}
+        bgcolor="paleturquoise"
+        borderRadius={4}
+        p={1}
+      >
+        <ActiveTasksList />
+      </Box>
+      <Box
+        width={{ xs: "100%", md: "50%" }}
+        bgcolor={red[300]}
+        borderRadius={4}
+        p={1}
+      >
+        <CompletedTaskList />
+      </Box>
+    </Box>
   );
 }
