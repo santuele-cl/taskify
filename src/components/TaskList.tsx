@@ -1,22 +1,16 @@
 // import { Box } from "@mui/material";
-import { Task } from "../model";
+import { useAppContext } from "../AppStateContext";
 
 import SingleTask from "./SingleTask";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 
-export default function TaskList({
-  tasks,
-  setTasks,
-}: {
-  tasks: Task[];
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
-}) {
-  console.log(tasks);
+export default function TaskList() {
+  const { state } = useAppContext();
   return (
     <Grid container spacing={2}>
-      {tasks.map((task) => (
+      {state.tasks.map((task) => (
         <Grid xs={12} md={6} key={task.id}>
-          <SingleTask task={task} setTasks={setTasks} />
+          <SingleTask task={task} />
         </Grid>
       ))}
     </Grid>
